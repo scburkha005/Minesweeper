@@ -1,0 +1,27 @@
+#playingField {
+    display: flex;
+    width: 350px;
+    height: 350px;
+}
+
+.column {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    width: 100vw;
+    border: none;
+}
+
+div {
+    display: flex;
+    flex: 1 1;
+    border: 1px solid black;
+}
+
+.boxHidden {
+    background-color: lightslategray;
+}
+
+.boxHidden:active {
+    background-color: darkslategrey;
+}
