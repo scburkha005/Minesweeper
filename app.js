@@ -28,8 +28,9 @@ function newGame () {
     return game;
 }
 
-const xPosition = document.getElementsByClassName('column');
-console.log(xPosition);
+const columnCollection = document.getElementsByClassName('column');
+console.log(columnCollection);
+
 
 //initialize game
 let game = newGame();
@@ -37,11 +38,32 @@ let mineArray = game.generateMines();
 console.log(mineArray);
 
 //add mines to the playfield
-for (i = 0; i < mineArray.length; i++) {
+for (let i = 0; i < mineArray.length; i++) {
     let minePosition = mineArray[i];
-    let minePlacement = xPosition[minePosition[0]].children[minePosition[1]];
+    let minePlacement = columnCollection[minePosition[0]].children[minePosition[1]];
     // console.log(columnArray);
     minePlacement.style.backgroundColor = 'red';
+    minePlacement.classList.add('mines');
 }
-
+//add numbers to playfield
+for (let i = 0; i < columnCollection.length; i++) {
+    for (let j = 0; j < columnCollection[0].children.length; j++) {
+        if (columnCollection[i].children[j].classList.contains('mines')) {
+            for (let k = i - 1; k < i + 2; k++) {
+                for (let l = j - 1; l < j + 2; l++) {
+                    if (k < 0 || k > 15 || l < 0 || l > 15) {
+                        continue;
+                    }
+                    console.log('x value', k, 'y value', l);
+                    if (columnCollection[k].children[l].classList.contains('mines')) {
+                        continue;
+                    }
+                    columnCollection[k].children[l].innerText = Number(columnCollection[k].children[l].innerText) + 1;
+                }
+            }
+        }
+    }
+}
 //test section
+columnCollection[0].children[0].innerText = Number(columnCollection[0].children[0].innerText) + 1
+console.log(columnCollection.length)
