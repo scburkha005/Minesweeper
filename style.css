@@ -1,27 +1,44 @@
-#playingField {
+#app {
     display: flex;
-    width: 350px;
-    height: 350px;
+    justify-content: center;
+    width: 100%;
 }
 
 .column {
     display: flex;
     flex-direction: column;
-    flex-wrap: wrap;
-    width: 100vw;
-    border: none;
 }
 
-div {
+.cell {
     display: flex;
-    flex: 1 1;
+    height: 1rem;
+    width: 1rem;
     border: 1px solid black;
+    border-bottom: none;
+    border-right: none;
+    caret-color: transparent;
 }
 
-.boxHidden {
+.cell:last-child {
+    border-bottom: 1px solid black;
+}
+
+.column:last-child > * {
+    border-right: 1px solid black;
+}
+
+.cellHidden {
     background-color: lightslategray;
 }
 
-.boxHidden:active {
+.cellHidden:active {
     background-color: darkslategrey;
+}
+
+.mines {
+    background-color: red;
+}
+
+.flag {
+    background-color: blue;
 }
