@@ -97,14 +97,16 @@ function newGame () {
                         this.playField[i].push({
                             isMine: true,
                             number: 0,
-                            isFlagged: false
+                            isFlagged: false,
+                            isHidden: true
                         })
                         continue;
                     }
                     this.playField[i].push({
                         isMine: false,
                         number: 0,
-                        isFlagged: false
+                        isFlagged: false,
+                        isHidden: true
                     })
                 }
             }
@@ -135,18 +137,34 @@ function newGame () {
             for (let i = 0; i < this.minesCoordinates.length; i++) {
                 let xMinePos = this.minesCoordinates[i][0];
                 let yMinePos = this.minesCoordinates[i][1];
-                for (let j = xMinePos - 1; j < xMinePos + 2; j++) {
-                    for (let k = yMinePos - 1; k < yMinePos + 2; k++) {
-                        if (j < 0 || j > this.columns - 1 || k < 0 || k > this.rows - 1) {
-                            continue;
-                        }
-                        if (!this.checkRepeatMine([j, k], this.minesCoordinates)) {
-                            continue;
-                        }
-                        this.playField[j][k].number++;
+                let positionsAroundMine = this.generate3by3Grid([xMinePos, yMinePos]);
+                for (let j = 0; j < positionsAroundMine.length; j++) {
+                    let currentX = positionsAroundMine[j][0];
+                    let currentY = positionsAroundMine[j][1];
+                    if (!this.checkRepeatMine([currentX, currentY], this.minesCoordinates)) {
+                        continue;
                     }
+                    this.playField[currentX][currentY].number++;
                 }
             }
+        },
+        generate3by3Grid: function (xyPosition) {
+            let xPosition = xyPosition[0];
+            let yPosition = xyPosition[1];
+            let positionCollection = [];
+            for (let i = xPosition - 1; i < xPosition + 2; i++) {
+                for (let j = yPosition - 1; j < yPosition + 2; j++) {
+                    if (i < 0 || i > this.columns - 1 || j < 0 || j > this.rows - 1) {
+                        continue;
+                    }
+                    //omit center position
+                    if (!this.checkRepeatMine([i, j], [[xPosition, yPosition]])) {
+                        continue;
+                    }
+                    positionCollection.push([i, j]);
+                }
+            }
+            return positionCollection;
         }
     }
     return gameState;
@@ -156,7 +174,6 @@ let state = newGame();
 state.generatePlayField();
 console.log("Mine coords: ", state.minesCoordinates);
 console.log("Playfield: ", state.playField);
-console.log("number coords: ", state.numberCoordinates);
 
 //RENDERS / VIEWS
 function render() {
@@ -169,7 +186,6 @@ function render() {
         for (let j = 0; j < state.playField[i].length; j++) {
             let gridCell = document.createElement('div');
             gridCell.classList.add('cell');
-            gridCell.classList.add('cellHidden');
             if (state.playField[i][j].isFlagged === true) {
                 gridCell.classList.add('flag');
             }
@@ -182,6 +198,12 @@ function render() {
             }
             else {
                 gridCell.classList.add('empty');
+            }
+            if (state.playField[i][j].isHidden === true) {
+                gridCell.classList.add('cellHidden');
+            }
+            else {
+                gridCell.classList.add('cellOpen');
             }
             columnDiv.appendChild(gridCell);
         }
@@ -218,6 +240,7 @@ appElement.addEventListener('click', function (event) {
     
     state.playField;
     console.log(event.target);
+    //reset click
     if (event.target.classList.contains('reset')) {
         state = newGame();
         state.generatePlayField();
@@ -229,10 +252,11 @@ appElement.addEventListener('click', function (event) {
         state.playField.alive = false;
     }
     else if (state.playField[xCoord][yCoord].number > 0) {
-
+        state.playField[xCoord][yCoord].isHidden = false;
     }
     else {
-
+        let array = state.generate3by3Grid([xCoord, yCoord]);
+        console.log(array);
     }
     render();
 })
