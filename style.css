@@ -23,7 +23,7 @@ body {
 
 .reset {
     height: 2vh;
-    width: 10%;
+    width: 3rem;
     margin-top: .3rem;
     font-size: .5rem;
 
@@ -59,6 +59,10 @@ body {
 
 .cellHidden:active {
     background-color: darkslategrey;
+}
+
+.cellOpen {
+    background-color: white;
 }
 
 .mines {
