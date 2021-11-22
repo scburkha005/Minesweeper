@@ -85,6 +85,7 @@ function newGame () {
         mineCount: 40,
         rows: 16,
         columns: 16,
+        alive: true,
         minesCoordinates: [],
         playField: [],
         generatePlayField: function () {
@@ -93,14 +94,21 @@ function newGame () {
                 this.playField[i] = [];
                 for (let j = 0; j < this.rows; j++) {
                     if (!this.checkRepeatMine([i, j], this.minesCoordinates)) {
-                        this.playField[i].push(9);
+                        this.playField[i].push({
+                            isMine: true,
+                            number: 0,
+                            isFlagged: false
+                        })
                         continue;
                     }
-                    this.playField[i].push(0);
+                    this.playField[i].push({
+                        isMine: false,
+                        number: 0,
+                        isFlagged: false
+                    })
                 }
             }
             this.generateNumbers();
-            return;
         },
         generateMines: function() {
             let mineCollection = [];
@@ -113,7 +121,6 @@ function newGame () {
                 }
             }
             this.minesCoordinates = mineCollection
-            return mineCollection;
         },
         checkRepeatMine: function(specificMine, allMines) {
             let isUnique = true;
@@ -136,7 +143,7 @@ function newGame () {
                         if (!this.checkRepeatMine([j, k], this.minesCoordinates)) {
                             continue;
                         }
-                        this.playField[j][k]++
+                        this.playField[j][k].number++;
                     }
                 }
             }
@@ -145,25 +152,32 @@ function newGame () {
     return gameState;
 }
 
-const state = newGame();
+let state = newGame();
 state.generatePlayField();
-console.log(state.minesCoordinates);
-console.log(state.playField)
+console.log("Mine coords: ", state.minesCoordinates);
+console.log("Playfield: ", state.playField);
+console.log("number coords: ", state.numberCoordinates);
 
 //RENDERS / VIEWS
 function render() {
+    appElement.innerHTML = '';
+    //Render initial playfield
     for (let i = 0; i < state.playField.length; i++) {
         let columnDiv = document.createElement('div')
         columnDiv.classList.add('column');
+        columnDiv.style.height = `${state.rows + 2}rem` 
         for (let j = 0; j < state.playField[i].length; j++) {
             let gridCell = document.createElement('div');
             gridCell.classList.add('cell');
             gridCell.classList.add('cellHidden');
-            if (state.playField[i][j] === 9) {
+            if (state.playField[i][j].isFlagged === true) {
+                gridCell.classList.add('flag');
+            }
+            else if (state.playField[i][j].isMine === true) {
                 gridCell.classList.add('mines');
             }
-            else if (state.playField[i][j] > 0) {
-                gridCell.innerText = `${state.playField[i][j]}`;
+            else if (state.playField[i][j].number > 0) {
+                gridCell.innerText = `${state.playField[i][j].number}`;
                 gridCell.classList.add('number');
             }
             else {
@@ -173,26 +187,68 @@ function render() {
         }
         appElement.appendChild(columnDiv);
     }
+    //Reset Button
+    const resetButton = document.createElement('button');
+    const buttonContainer = document.createElement('div');
+    // let resetContainer = document.getElementsByClassName('buttoncontainer');
+    // resetContainer[0].innerHTML = '';
+    resetButton.classList.add('reset');
+    buttonContainer.classList.add('buttoncontainer');
+    resetButton.innerText = 'Reset';
+    appElement.appendChild(buttonContainer);
+    buttonContainer.appendChild(resetButton);
+    //DOM Elements
+    const columnElem = document.getElementsByClassName('column');
+
+    //Player action results
+    if (state.playField.alive === false) {
+        for (let i = 0; i < columnElem.length; i++) {
+            columnElem[i].style.display = 'none';
+        }
+    }
 }
 render();
 //EVENTS /CONTROLLERS
 
 appElement.addEventListener('click', function (event) {
-    if (event.target.classList.contains('flag')) {
+    let xCoord = Array.from(this.children).indexOf(event.target.parentElement);
+    let yCoord = Array.from(this.children[xCoord].children).indexOf(event.target);
+    console.log("x value: ", xCoord, "y value: ", yCoord);
+    
+    
+    state.playField;
+    console.log(event.target);
+    if (event.target.classList.contains('reset')) {
+        state = newGame();
+        state.generatePlayField();
+    }
+    else if (state.playField[xCoord][yCoord].isFlagged === true) {
 
     }
-    else if (event.target.classList.contains('mines')) {
-        appElement.style.display = 'none';
+    else if (state.playField[xCoord][yCoord].isMine === true) {
+        state.playField.alive = false;
     }
-    else if (event.target.classList.contains('number')) {
+    else if (state.playField[xCoord][yCoord].number > 0) {
 
     }
     else {
 
     }
+    render();
 })
-
+//Flag toggle
 appElement.addEventListener('contextmenu', function (event) {
+    let xCoord = Array.from(this.children).indexOf(event.target.parentElement);
+    let yCoord = Array.from(this.children[xCoord].children).indexOf(event.target);
+    if (state.playField[xCoord][yCoord].isFlagged === false) {
+        state.playField[xCoord][yCoord].isFlagged = true;
+    }
+    else {
+        state.playField[xCoord][yCoord].isFlagged = false;
+    }
+    console.log(state.playField)
+    console.log("x value: ", xCoord, "y value: ", yCoord);
+
     event.preventDefault();
-    event.target.classList.toggle('flag');
+    render();
 })
