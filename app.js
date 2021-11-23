@@ -1,94 +1,33 @@
-// function newGame () {
-//     let game = {
-//         mineCount: 40,
-//         minesCoordinates: [],
-//         generateMines: function() {
-//             let mineCollection = [];
-//             while (mineCollection.length < this.mineCount) {
-//                 let minePosition = [];
-//                 for (let j = 0; j < 2; j++) {
-//                     let randomPosition = Math.floor(Math.random() * 16);
-//                     minePosition.push(randomPosition);
-//                 }
-//                 if (this.checkRepeatMine(minePosition, mineCollection)) {
-//                     mineCollection.push(minePosition);
-//                 }
-//             }
-//             this.minesCoordinates = mineCollection
-//             return mineCollection;
-//         },
-//         checkRepeatMine: function(specificMine, allMines) {
-//             let isUnique = true;
-//             for (let i = 0; i < allMines.length; i++) {
-//                 if (specificMine[0] === allMines[i][0] && specificMine[1] === allMines[i][1]) {
-//                     isUnique = false;
-//                 }
-//             }
-//             return isUnique;
-//         },
-//         placeMines: function() {
-//             for (let i = 0; i < this.minesCoordinates.length; i++) {
-//                 let minePosition = this.minesCoordinates[i];
-//                 let minePlacement = columnCollection[minePosition[0]].children[minePosition[1]];
-//                 minePlacement.classList.add('mines');
-//             }
-//         }
-//     }
-//     return game;
-// }
-
-// const columnCollection = document.getElementsByClassName('column');
-// console.log(columnCollection);
-
-
-//initialize game
-// let game = newGame();
-// let mineArray = game.generateMines();
-// console.log(mineArray);
-
-// //add mines to the playfield
-// for (let i = 0; i < mineArray.length; i++) {
-//     let minePosition = mineArray[i];
-//     let minePlacement = columnCollection[minePosition[0]].children[minePosition[1]];
-//     // console.log(columnArray);
-//     minePlacement.classList.add('mines');
-//}
-//add numbers to playfield
-// for (let i = 0; i < columnCollection.length; i++) {
-//     for (let j = 0; j < columnCollection[i].children.length; j++) {
-//         if (columnCollection[i].children[j].classList.contains('mines')) {
-//             for (let k = i - 1; k < i + 2; k++) {
-//                 for (let l = j - 1; l < j + 2; l++) {
-//                     if (k < 0 || k > 15 || l < 0 || l > 15) {
-//                         continue;
-//                     }
-//                     console.log('x value', k, 'y value', l);
-//                     if (columnCollection[k].children[l].classList.contains('mines')) {
-//                         continue;
-//                     }
-//                     columnCollection[k].children[l].innerText = Number(columnCollection[k].children[l].innerText) + 1;
-//                 }
-//             }
-//         }
-//     }
-// }
-//test section
-// columnCollection[0].children[0].innerText = Number(columnCollection[0].children[0].innerText) + 1
-// console.log(columnCollection.length)
-
 //M-V-C
 
 //STATE / MODEL
 const appElement = document.getElementById('app');
+let checkedPositionCenter = [];
+
+function reveal (position3by3) {
+    for (let i = 0; i < position3by3.length; i++) {
+        let currentX = position3by3[i][0];
+        let currentY = position3by3[i][1];
+        if (state.playField[currentX][currentY].isMine === false) {
+            state.playField[currentX][currentY].isHidden = false;
+            if (state.playField[currentX][currentY].number === 0 && state.checkRepeatMine([currentX, currentY], checkedPositionCenter)) {
+                let affectedPositions = state.generate3by3Grid([currentX, currentY]);
+                reveal(affectedPositions);
+            }
+        }
+    }
+}
+
 function newGame () {
     let gameState = {
-        mineCount: 40,
-        rows: 16,
-        columns: 16,
+        rows: 25,
+        columns: 40,
+        mineCount: 0,
         alive: true,
         minesCoordinates: [],
         playField: [],
         generatePlayField: function () {
+            this.mineCount = Math.floor(this.rows * this.columns * .15625);
             this.generateMines();
             for (let i = 0; i < this.columns; i++) {
                 this.playField[i] = [];
@@ -157,9 +96,13 @@ function newGame () {
                     if (i < 0 || i > this.columns - 1 || j < 0 || j > this.rows - 1) {
                         continue;
                     }
-                    //omit center position
-                    if (!this.checkRepeatMine([i, j], [[xPosition, yPosition]])) {
-                        continue;
+                    //log center position while ignoring mines
+                    if (xPosition === i && yPosition === j) {
+                        if (this.checkRepeatMine([i, j], this.minesCoordinates)) {
+                            if (this.checkRepeatMine([i, j], checkedPositionCenter)) {
+                                checkedPositionCenter.push([i, j]);
+                            }
+                        }
                     }
                     positionCollection.push([i, j]);
                 }
@@ -175,29 +118,24 @@ state.generatePlayField();
 console.log("Mine coords: ", state.minesCoordinates);
 console.log("Playfield: ", state.playField);
 
+//A*
+//
+
 //RENDERS / VIEWS
 function render() {
     appElement.innerHTML = '';
     //Render initial playfield
+    let playfieldContainer = document.createElement('div');
+    playfieldContainer.classList.add('playfieldContainer');
     for (let i = 0; i < state.playField.length; i++) {
         let columnDiv = document.createElement('div')
         columnDiv.classList.add('column');
-        columnDiv.style.height = `${state.rows + 2}rem` 
+        columnDiv.style.height = `${(state.rows / 16) + (state.rows * 1.5)} rem`;
         for (let j = 0; j < state.playField[i].length; j++) {
             let gridCell = document.createElement('div');
             gridCell.classList.add('cell');
-            if (state.playField[i][j].isFlagged === true) {
-                gridCell.classList.add('flag');
-            }
-            else if (state.playField[i][j].isMine === true) {
-                gridCell.classList.add('mines');
-            }
-            else if (state.playField[i][j].number > 0) {
-                gridCell.innerText = `${state.playField[i][j].number}`;
-                gridCell.classList.add('number');
-            }
-            else {
-                gridCell.classList.add('empty');
+            if (i === state.playField.length - 1) {
+                gridCell.style.borderRight = '1px solid black';
             }
             if (state.playField[i][j].isHidden === true) {
                 gridCell.classList.add('cellHidden');
@@ -205,74 +143,121 @@ function render() {
             else {
                 gridCell.classList.add('cellOpen');
             }
+            if (state.playField[i][j].isFlagged === true) {
+                gridCell.classList.add('flag');
+            }
+            if (state.playField[i][j].isHidden === false) {
+                if (state.playField[i][j].isMine === true) {
+                    gridCell.classList.add('mines');
+                }
+                else if (state.playField[i][j].number > 0) {
+                    gridCell.innerText = `${state.playField[i][j].number}`;
+                    gridCell.classList.add('number');
+                }
+                else {
+                    gridCell.classList.add('empty');
+                }
+            }
             columnDiv.appendChild(gridCell);
         }
-        appElement.appendChild(columnDiv);
+        playfieldContainer.appendChild(columnDiv);
     }
+    appElement.appendChild(playfieldContainer);
+    
     //Reset Button
     const resetButton = document.createElement('button');
     const buttonContainer = document.createElement('div');
-    // let resetContainer = document.getElementsByClassName('buttoncontainer');
-    // resetContainer[0].innerHTML = '';
     resetButton.classList.add('reset');
     buttonContainer.classList.add('buttoncontainer');
     resetButton.innerText = 'Reset';
-    appElement.appendChild(buttonContainer);
+    playfieldContainer.appendChild(buttonContainer);
+    
+    //Mines left
+    const mineCount = document.createElement('div');
+    mineCount.classList.add('mineCount');
+    mineCount.innerText = `${state.mineCount}`;
+    buttonContainer.appendChild(mineCount);
     buttonContainer.appendChild(resetButton);
-    //DOM Elements
-    const columnElem = document.getElementsByClassName('column');
+    
+    //Timer
+    // const timerElem = document.createElement('div');
+    // timerElem.classList.add('timer');
+    // buttonContainer.appendChild(timerElem);
+    // setInterval(function() {
+    //     let timer = 0;
+    //     timer++
+    //     timerElem.innerText = timer;
+    // }, 1000);
+    
+    //Playfield container dynamic styling
+    playfieldContainer.style.width = `${(state.columns * 1.5) + 3}rem`;
+    playfieldContainer.style.height = `${(state.rows * 1.5) + 5}rem`;
 
-    //Player action results
-    if (state.playField.alive === false) {
-        for (let i = 0; i < columnElem.length; i++) {
-            columnElem[i].style.display = 'none';
-        }
-    }
 }
 render();
 //EVENTS /CONTROLLERS
-
 appElement.addEventListener('click', function (event) {
-    let xCoord = Array.from(this.children).indexOf(event.target.parentElement);
-    let yCoord = Array.from(this.children[xCoord].children).indexOf(event.target);
+    let xCoord = Array.from(this.children[0].children).indexOf(event.target.parentElement);
+    let yCoord = Array.from(this.children[0].children[xCoord].children).indexOf(event.target);
     console.log("x value: ", xCoord, "y value: ", yCoord);
-    
-    
-    state.playField;
     console.log(event.target);
-    //reset click
-    if (event.target.classList.contains('reset')) {
-        state = newGame();
-        state.generatePlayField();
-    }
-    else if (state.playField[xCoord][yCoord].isFlagged === true) {
-
-    }
-    else if (state.playField[xCoord][yCoord].isMine === true) {
-        state.playField.alive = false;
-    }
-    else if (state.playField[xCoord][yCoord].number > 0) {
-        state.playField[xCoord][yCoord].isHidden = false;
+    
+    if (state.alive === true) {
+        //reset click
+        if (event.target.classList.contains('reset')) {
+            state = newGame();
+            state.generatePlayField();
+            checkedPositionCenter = [];
+        }
+        else if (state.playField[xCoord][yCoord].isFlagged === true) {
+    
+        }
+        else if (state.playField[xCoord][yCoord].isMine === true) {
+            state.alive = false;
+            for (let i = 0; i < state.minesCoordinates.length; i++) {
+                let currentX = state.minesCoordinates[i][0];
+                let currentY = state.minesCoordinates[i][1];
+                if (state.playField[currentX][currentY].isFlagged === false){
+                    state.playField[currentX][currentY].isHidden = false;
+                }
+            }
+        }
+        else if (state.playField[xCoord][yCoord].number > 0) {
+            state.playField[xCoord][yCoord].isHidden = false;
+        }
+        else {
+            let affectedPositions = state.generate3by3Grid([xCoord, yCoord]);
+            console.log(checkedPositionCenter)
+            reveal(affectedPositions);
+        }
     }
     else {
-        let array = state.generate3by3Grid([xCoord, yCoord]);
-        console.log(array);
+        if (event.target.classList.contains('reset')) {
+            state = newGame();
+            state.generatePlayField();
+            checkedPositionCenter = [];
+        }
     }
+    
     render();
 })
+
 //Flag toggle
 appElement.addEventListener('contextmenu', function (event) {
-    let xCoord = Array.from(this.children).indexOf(event.target.parentElement);
-    let yCoord = Array.from(this.children[xCoord].children).indexOf(event.target);
-    if (state.playField[xCoord][yCoord].isFlagged === false) {
-        state.playField[xCoord][yCoord].isFlagged = true;
-    }
-    else {
-        state.playField[xCoord][yCoord].isFlagged = false;
+    let xCoord = Array.from(this.children[0].children).indexOf(event.target.parentElement);
+    let yCoord = Array.from(this.children[0].children[xCoord].children).indexOf(event.target);
+    if (state.alive === true && state.playField[xCoord][yCoord].isHidden === true) {
+        if (state.playField[xCoord][yCoord].isFlagged === false) {
+            state.playField[xCoord][yCoord].isFlagged = true;
+            state.mineCount--
+        }
+        else {
+            state.playField[xCoord][yCoord].isFlagged = false;
+            state.mineCount++
+        }
     }
     console.log(state.playField)
     console.log("x value: ", xCoord, "y value: ", yCoord);
-
     event.preventDefault();
     render();
 })
