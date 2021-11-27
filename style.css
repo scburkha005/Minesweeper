@@ -10,6 +10,7 @@ body {
 #app {
     display: flex;
     justify-content: center;
+    align-content: flex-start;
     flex-wrap: wrap;
     width: 100%;
     height: 100%;
@@ -20,7 +21,11 @@ body {
     justify-content: center;
     align-content: center;
     flex-wrap: wrap;
-    background-color: grey;
+    background-image: linear-gradient(
+        to bottom right,
+        #565656, #d0deff, #565656
+    );
+    border: 2px solid black;
 }
 
 .buttoncontainer {
@@ -30,11 +35,41 @@ body {
     width: 100%;
 }
 
-.reset, .mineCount, .timer {
+.reset, .mineCount, .timer, .newGame {
     height: 2rem;
     width: 5rem;
     font-size: 1rem;
     margin-top: .5rem;
+}
+
+.newGameContainer {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: .6rem;
+}
+
+.newGame {
+    width: 7rem;
+    margin-bottom: .5rem;
+    margin-right: 40%;
+    margin-left: 40%;
+}
+
+label {
+    font-weight: bold;
+    margin-right: 1rem;
+}
+
+input {
+    width: 4rem;
+    margin-right: 1rem;
+    text-align: center;
+}
+
+input:last-child {
+    margin-right: 0;
 }
 
 .mineCount, .timer {
@@ -44,6 +79,11 @@ body {
     align-items: center;
     font-size: 1.5rem;
     width: 3rem;
+}
+
+.winLoseMessage {
+    margin-top: .3rem;
+    font-size: 1.5rem;
 }
 
 .column {
@@ -64,12 +104,11 @@ body {
 }
 
 .cell:last-child {
-    border-bottom: 1px solid black;
+    border-bottom: 2px solid black;
 }
 
 .cellHidden {
     background-color: lightslategray;
-    display: 
 }
 
 .cellHidden:active {
