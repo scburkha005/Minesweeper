@@ -4,6 +4,7 @@
 const appElement = document.getElementById('app');
 let checkedPositionCenter = [];
 
+//Recursive function for revealing playfield logic
 function reveal (position3by3) {
     for (let i = 0; i < position3by3.length; i++) {
         let currentX = position3by3[i][0];
@@ -22,14 +23,14 @@ function newGame () {
     let gameState = {
         rows: 16,
         columns: 16,
-        mineCount: 0,
+        mineCount: 40,
         alive: true,
         won: false,
         newGameMenuOpen: false,
         minesCoordinates: [],
         playField: [],
-        generatePlayField: function () {
-            this.mineCount = Math.floor(this.rows * this.columns * .15625);
+        generatePlayField: function (numMines) {
+            this.mineCount = numMines;
             this.generateMines();
             for (let i = 0; i < this.columns; i++) {
                 this.playField[i] = [];
@@ -116,7 +117,7 @@ function newGame () {
 }
 
 let state = newGame();
-state.generatePlayField();
+state.generatePlayField(40);
 console.log("Mine coords: ", state.minesCoordinates);
 console.log("Playfield: ", state.playField);
 
@@ -269,90 +270,101 @@ render();
 //     }
 // })
 
-appElement.addEventListener('mouseup', function (event) {
+
+
+appElement.addEventListener('click', function (event) {
     mouseDown = false;
-    console.log(event.target);
-    if (event.which === 1) {
-        //New Game and Reset Game
-        if (event.target.classList.contains('newGame') || event.target.classList.contains('reset')) {
-            if (event.target.classList.contains('reset') || (event.target.classList.contains('newGame') && state.newGameMenuOpen === true)) {
-                if ((this.children[0].children[1].children[5].value != state.mineCount) || event.target.classList.contains('reset')) {
-                    state = newGame();
-                    state.rows = this.children[0].children[1].children[1].value;
-                    state.columns = this.children[0].children[1].children[3].value;
-                    state.generatePlayField();
-                    state.mineCount = this.children[0].children[1].children[5].value;
-                }
-                else {
-                    state = newGame();
-                    state.rows = this.children[0].children[1].children[1].value;
-                    state.columns = this.children[0].children[1].children[3].value;
-                    state.generatePlayField();
-                    
-                }
-                checkedPositionCenter = [];
-                state.newGameMenuOpen = false;
+    console.log(event.target)
+    //New Game and Reset Game
+    console.log(state)
+    if (event.target.classList.contains('newGame')) {
+        if (state.newGameMenuOpen === true) {
+            if ((this.children[0].children[1].children[5].value != state.mineCount)) {
+                state = newGame();
+                state.rows = this.children[0].children[1].children[1].value;
+                state.columns = this.children[0].children[1].children[3].value;
+                state.generatePlayField(this.children[0].children[1].children[5].value);
             }
             else {
-                state.newGameMenuOpen = true;
+                state = newGame();
+                state.rows = this.children[0].children[1].children[1].value;
+                state.columns = this.children[0].children[1].children[3].value;
+                state.generatePlayField(Math.floor(state.rows * state.columns * .15625));
             }
+            checkedPositionCenter = [];
+            state.newGameMenuOpen = false;
         }
         else {
-            let xCoord = Array.from(this.children[1].children).indexOf(event.target.parentElement);
-            let yCoord = Array.from(this.children[1].children[xCoord].children).indexOf(event.target);
-            console.log("x value: ", xCoord, "y value: ", yCoord);
-            console.log('state', state);
-            if (state.alive === true && state.won === false) {
-                if (state.playField[xCoord][yCoord].isFlagged === true) {
-            
+            state.newGameMenuOpen = true;
+        }
+    }
+    else if (event.target.classList.contains('reset')) {
+        let flagCount = 0;
+        for (let i = 0; i < state.columns; i++) {
+            for (let j = 0; j < state.rows; j++) {
+                if (state.playField[i][j].isFlagged === true) {
+                    flagCount++;
                 }
-                else if (state.playField[xCoord][yCoord].isMine === true) {
-                    state.alive = false;
-                    for (let i = 0; i < state.minesCoordinates.length; i++) {
-                        let currentX = state.minesCoordinates[i][0];
-                        let currentY = state.minesCoordinates[i][1];
-                        if (state.playField[currentX][currentY].isFlagged === false){
-                            state.playField[currentX][currentY].isHidden = false;
-                        }
+            }
+        }
+        state = newGame();
+        state.rows = this.children[0].children[1].children[1].value;
+        state.columns = this.children[0].children[1].children[3].value;
+        state.generatePlayField(Number(this.children[0].children[1].children[5].value) + flagCount);
+    }
+    else {
+        let xCoord = Array.from(this.children[1].children).indexOf(event.target.parentElement);
+        let yCoord = Array.from(this.children[1].children[xCoord].children).indexOf(event.target);
+        if (state.alive === true && state.won === false) {
+            if (state.playField[xCoord][yCoord].isFlagged === true) {
+        
+            }
+            else if (state.playField[xCoord][yCoord].isMine === true) {
+                state.alive = false;
+                for (let i = 0; i < state.minesCoordinates.length; i++) {
+                    let currentX = state.minesCoordinates[i][0];
+                    let currentY = state.minesCoordinates[i][1];
+                    if (state.playField[currentX][currentY].isFlagged === false){
+                        state.playField[currentX][currentY].isHidden = false;
                     }
                 }
-                else if (state.playField[xCoord][yCoord].number > 0) {
-                    state.playField[xCoord][yCoord].isHidden = false;
-                }
-                else {
-                    let affectedPositions = state.generate3by3Grid([xCoord, yCoord]);
-                    console.log(checkedPositionCenter)
-                    reveal(affectedPositions);
-                }
-                //Winning
-                for (let i = 0; i < state.columns; i++) {
-                    let breakOut = false;
-                    for (let j = 0; j < state.rows; j++) {
-                        if (state.playField[i][j].isHidden === false || state.playField[i][j].isFlagged === true) {
-                            if (i === state.columns - 1 && j === state.rows - 1) {
-                                state.won = true;
-                            }
-                            continue;
+            }
+            else if (state.playField[xCoord][yCoord].number > 0) {
+                state.playField[xCoord][yCoord].isHidden = false;
+            }
+            else {
+                let affectedPositions = state.generate3by3Grid([xCoord, yCoord]);
+                reveal(affectedPositions);
+            }
+            //Winning
+            for (let i = 0; i < state.columns; i++) {
+                let breakOut = false;
+                for (let j = 0; j < state.rows; j++) {
+                    if (state.playField[i][j].isHidden === false || state.playField[i][j].isFlagged === true) {
+                        if (i === state.columns - 1 && j === state.rows - 1) {
+                            state.won = true;
                         }
-                        else {
-                            breakOut = true;
-                            break;
-                        }
+                        continue;
                     }
-                    if (breakOut === true) {
+                    else {
+                        breakOut = true;
                         break;
                     }
                 }
-            }
-            else {
-                if (event.target.classList.contains('reset')) {
-                    state = newGame();
-                    state.generatePlayField();
-                    checkedPositionCenter = [];
+                if (breakOut === true) {
+                    break;
                 }
             }
         }
+        // else {
+        //     if (event.target.classList.contains('reset')) {
+        //         state = newGame();
+        //         state.generatePlayField();
+        //         checkedPositionCenter = [];
+        //     }
+        // }
     }
+    
     render();
 })
 
@@ -391,9 +403,6 @@ appElement.addEventListener('contextmenu', function (event) {
             }
         }
     }
-    console.log(state.playField)
-    console.log(state);
-    console.log("x value: ", xCoord, "y value: ", yCoord);
     event.preventDefault();
     render();
 })
