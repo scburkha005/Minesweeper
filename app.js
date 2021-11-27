@@ -121,9 +121,6 @@ state.generatePlayField(40);
 console.log("Mine coords: ", state.minesCoordinates);
 console.log("Playfield: ", state.playField);
 
-//A*
-//
-
 //RENDERS / VIEWS
 function render() {
     appElement.innerHTML = '';
@@ -148,9 +145,6 @@ function render() {
     rowLabel.innerText = 'Rows';
     columnLabel.innerText = 'Columns';
     minesLabel.innerText = 'Mines (optional)';
-    rowInput.setAttribute('id', 'rowInput');
-    columnInput.setAttribute('id', 'columnInput');
-    minesInput.setAttribute('id', 'minesInput');
     rowInput.value = state.rows;
     columnInput.value = state.columns;
     minesInput.value = state.mineCount;
@@ -253,30 +247,15 @@ function render() {
     // }, 1000);
     
     //Playfield container dynamic styling
-    playfieldContainer.style.width = `${(state.columns * 1.5) + 3}rem`;
-    playfieldContainer.style.height = `${(state.rows * 1.5) + 7}rem`;
+    playfieldContainer.style.width = `${(state.columns * 1.6) + 3}rem`;
+    playfieldContainer.style.height = `${(state.rows * 1.6) + 6}rem`;
 
 }
 render();
+
 //EVENTS /CONTROLLERS
-// let mouseDown = false;
-// appElement.addEventListener('mousedown', function(event) {
-//     mouseDown = true;
-// })
-
-// appElement.addEventListener('mousemove', function(event) {
-//     if (event.target.classList.contains('cell') && mouseDown === true) {
-//         event.target.style.backgroundColor = 'darkslategrey';
-//     }
-// })
-
-
-
 appElement.addEventListener('click', function (event) {
-    mouseDown = false;
-    console.log(event.target)
-    //New Game and Reset Game
-    console.log(state)
+    //New Game
     if (event.target.classList.contains('newGame')) {
         if (state.newGameMenuOpen === true) {
             if ((this.children[0].children[1].children[5].value != state.mineCount)) {
@@ -298,6 +277,7 @@ appElement.addEventListener('click', function (event) {
             state.newGameMenuOpen = true;
         }
     }
+    //Reset Game
     else if (event.target.classList.contains('reset')) {
         let flagCount = 0;
         for (let i = 0; i < state.columns; i++) {
@@ -311,7 +291,9 @@ appElement.addEventListener('click', function (event) {
         state.rows = this.children[0].children[1].children[1].value;
         state.columns = this.children[0].children[1].children[3].value;
         state.generatePlayField(Number(this.children[0].children[1].children[5].value) + flagCount);
+        checkedPositionCenter = [];
     }
+    //Game Logic
     else {
         let xCoord = Array.from(this.children[1].children).indexOf(event.target.parentElement);
         let yCoord = Array.from(this.children[1].children[xCoord].children).indexOf(event.target);
@@ -356,15 +338,7 @@ appElement.addEventListener('click', function (event) {
                 }
             }
         }
-        // else {
-        //     if (event.target.classList.contains('reset')) {
-        //         state = newGame();
-        //         state.generatePlayField();
-        //         checkedPositionCenter = [];
-        //     }
-        // }
-    }
-    
+    }  
     render();
 })
 
