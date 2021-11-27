@@ -19,7 +19,7 @@ body {
 .playfieldContainer {
     display: flex;
     justify-content: center;
-    align-content: center;
+    align-content: flex-start;
     flex-wrap: wrap;
     background-image: linear-gradient(
         to bottom right,
@@ -90,6 +90,7 @@ input:last-child {
 .column {
     display: flex;
     flex-direction: column;
+    margin-top: 1rem;
 }
 
 .cell {
