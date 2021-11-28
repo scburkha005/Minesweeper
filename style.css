@@ -35,7 +35,7 @@ body {
     width: 100%;
 }
 
-.reset, .mineCount, .timer, .newGame {
+.reset, .mineCount, .newGame {
     height: 2rem;
     width: 5rem;
     font-size: 1rem;
