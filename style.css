@@ -106,7 +106,7 @@ input:last-child {
 }
 
 .cell:last-child {
-    border-bottom: 2px solid black;
+    border-bottom: 1px solid black;
 }
 
 .cellHidden {

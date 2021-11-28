@@ -174,7 +174,7 @@ function render() {
             let gridCell = document.createElement('div');
             gridCell.classList.add('cell');
             if (i === state.playField.length - 1) {
-                gridCell.style.borderRight = '2px solid black';
+                gridCell.style.borderRight = '1px solid black';
             }
             if (state.playField[i][j].isHidden === true) {
                 gridCell.classList.add('cellHidden');
