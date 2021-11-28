@@ -11,7 +11,7 @@ function reveal (position3by3) {
         let currentY = position3by3[i][1];
         if (state.playField[currentX][currentY].isMine === false) {
             state.playField[currentX][currentY].isHidden = false;
-            if (state.playField[currentX][currentY].number === 0 && state.checkRepeatMine([currentX, currentY], checkedPositionCenter)) {
+            if (state.playField[currentX][currentY].number === 0 && state.checkNestedArray([currentX, currentY], checkedPositionCenter)) {
                 let affectedPositions = state.generate3by3Grid([currentX, currentY]);
                 reveal(affectedPositions);
             }
@@ -35,7 +35,7 @@ function newGame () {
             for (let i = 0; i < this.columns; i++) {
                 this.playField[i] = [];
                 for (let j = 0; j < this.rows; j++) {
-                    if (!this.checkRepeatMine([i, j], this.minesCoordinates)) {
+                    if (!this.checkNestedArray([i, j], this.minesCoordinates)) {
                         this.playField[i].push({
                             isMine: true,
                             number: 0,
@@ -60,16 +60,16 @@ function newGame () {
                 let randomXPosition = Math.floor(Math.random() * this.columns);
                 let randomYPosition = Math.floor(Math.random() * this.rows);
                 let minePosition = [randomXPosition, randomYPosition];
-                if (this.checkRepeatMine(minePosition, mineCollection)) {
+                if (this.checkNestedArray(minePosition, mineCollection)) {
                     mineCollection.push(minePosition);
                 }
             }
             this.minesCoordinates = mineCollection
         },
-        checkRepeatMine: function(specificMine, allMines) {
+        checkNestedArray: function(specificArray, arrayCollection) {
             let isUnique = true;
-            for (let i = 0; i < allMines.length; i++) {
-                if (specificMine[0] === allMines[i][0] && specificMine[1] === allMines[i][1]) {
+            for (let i = 0; i < arrayCollection.length; i++) {
+                if (specificArray[0] === arrayCollection[i][0] && specificArray[1] === arrayCollection[i][1]) {
                     isUnique = false;
                 }
             }
@@ -83,7 +83,7 @@ function newGame () {
                 for (let j = 0; j < positionsAroundMine.length; j++) {
                     let currentX = positionsAroundMine[j][0];
                     let currentY = positionsAroundMine[j][1];
-                    if (!this.checkRepeatMine([currentX, currentY], this.minesCoordinates)) {
+                    if (!this.checkNestedArray([currentX, currentY], this.minesCoordinates)) {
                         continue;
                     }
                     this.playField[currentX][currentY].number++;
@@ -101,8 +101,8 @@ function newGame () {
                     }
                     //log center position while ignoring mines
                     if (xPosition === i && yPosition === j) {
-                        if (this.checkRepeatMine([i, j], this.minesCoordinates)) {
-                            if (this.checkRepeatMine([i, j], checkedPositionCenter)) {
+                        if (this.checkNestedArray([i, j], this.minesCoordinates)) {
+                            if (this.checkNestedArray([i, j], checkedPositionCenter)) {
                                 checkedPositionCenter.push([i, j]);
                             }
                         }
@@ -118,8 +118,6 @@ function newGame () {
 
 let state = newGame();
 state.generatePlayField(40);
-console.log("Mine coords: ", state.minesCoordinates);
-console.log("Playfield: ", state.playField);
 
 //RENDERS / VIEWS
 function render() {
@@ -223,11 +221,12 @@ function render() {
     //You Win!
     const columnElement = document.getElementsByClassName('column');
     if (state.won === true && state.alive === true) {
-            let youWinLoseDiv = document.createElement('div')
-            playfieldContainer.appendChild(youWinLoseDiv);
-            youWinLoseDiv.classList.add('winLoseMessage');
-            youWinLoseDiv.innerText = 'You Win!';
+        let youWinLoseDiv = document.createElement('div')
+        playfieldContainer.appendChild(youWinLoseDiv);
+        youWinLoseDiv.classList.add('winLoseMessage');
+        youWinLoseDiv.innerText = 'You Win!';
     }
+
     //You lose!
     if (state.alive === false) {
         let youWinLoseDiv = document.createElement('div')
@@ -235,16 +234,6 @@ function render() {
         youWinLoseDiv.classList.add('winLoseMessage');
         youWinLoseDiv.innerText = 'You Lose!';
     }
-    
-    //Timer
-    // const timerElem = document.createElement('div');
-    // timerElem.classList.add('timer');
-    // buttonContainer.appendChild(timerElem);
-    // setInterval(function() {
-    //     let timer = 0;
-    //     timer++
-    //     timerElem.innerText = timer;
-    // }, 1000);
     
     //Playfield container dynamic styling
     playfieldContainer.style.width = `${(state.columns * 1.6) + 3}rem`;
